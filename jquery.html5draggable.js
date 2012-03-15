@@ -82,76 +82,206 @@ function heriter(destination, source) {
 
         });
     }
-})(jQuery);
-
-/**************************************************************************
- *	Objet DragAndDrop contenant les méthodes utilisé pour tous les éléments
- *************************************************************************/
-var DragAndDrop = {
-	///////////////////////////
-	//options par defaut de l'objet
-    options: {
-    	action: "move",
-		swappable : false,
-		add : true
-    },
-	////////////////////////////////////////////
-	//fontionne qui cherche l'élément droppable
-	_searchDropzone: function(id){
-		var dropzone = $("#"+id);
-		// Si l'élément en target n'est pas le dépot on le cherche
-		if(!dropzone.attr("dropzone")) 
-			dropzone = dropzone.parent("[dropzone]");
-		return dropzone;
-	},
-	/////////////////////////////////////////////////
-	//changement du style quant on déplace un élément
-    _moveStyleElement: function(swappable){
-		if(swappable)
-			$("[draggable=true]").toggleClass("dropzone");
-		else
-			$("[dropzone]").toggleClass("dropzone");
-    }
-};
-
-/*********************
- *	Objet Draggable
- ********************/
-var draggable = {
-	///////////////////////////
-	//initialisation de l'objet
-    init: function(options, elem) {
 	
-        // Merge des options passés en paramétres avec les options par défaut
-        // Nos fameux mixins options
-        this.options = $.extend({},this.options,options);
-        
-        // Sauvegarde des référence de l'élement jQuery et de l'élement DOM
-        this.element = $(elem);
-        this.dom = elem;
-        
-        //Héritage de l'objet DragAndDrop
-	    heriter(this, DragAndDrop);
-	    
-        // appel de méthode
-        // préfixé par _ pour indiquer un état privé 'fictif'
-        this._build();
-        
-    },
-    //////////////////////
-    // Début du déplacement
-    _eventDragStart : function(e){
-    	//on récupère notre objet
-    	var self = e.data,
-			target = $("#"+e.target.id);
-    	//effet du drag and drop
-		e.dataTransfer.effectAllowed=self.options.action;
-		//on transfert l'id du bloc a déplacé
-		e.dataTransfer.setData("Text",e.target.id);
-		// on change le style
-		self._moveStyleElement(self.options.swappable); 
-		//Si on doit échanger les élement 
-		if(self.options.swappable){
+	/**************************************************************************
+	 *	Objet DragAndDrop contenant les méthodes utilisé pour tous les éléments
+	 *************************************************************************/
+	var DragAndDrop = {
+		///////////////////////////
+		//options par defaut de l'objet
+	    options: {
+	    	action: "move",
+			swappable : false,
+			add : true
+	    },
+		////////////////////////////////////////////
+		//fontionne qui cherche l'élément droppable
+		_searchDropzone: function(id){
+			var dropzone = $("#"+id);
+			// Si l'élément en target n'est pas le dépot on le cherche
+			if(!dropzone.attr("dropzone")) 
+				dropzone = dropzone.parent("[dropzone]");
+			return dropzone;
+		},
+		/////////////////////////////////////////////////
+		//changement du style quant on déplace un élément
+	    _moveStyleElement: function(){
+			$("[dropzone]").toggleClass("dropzone");
+	    }
+	};
+
+	/*********************
+	 *	Objet Draggable
+	 ********************/
+	var draggable = {
+		///////////////////////////
+		//initialisation de l'objet
+	    init: function(options, elem) {
+		
+	        // Merge des options passés en paramétres avec les options par défaut
+	        // Nos fameux mixins options
+	        this.options = $.extend({},this.options,options);
+	        
+	        // Sauvegarde des référence de l'élement jQuery et de l'élement DOM
+	        this.element = $(elem);
+	        this.dom = elem;
+	        
+	        //Héritage de l'objet DragAndDrop
+		    heriter(this, DragAndDrop);
+		    
+	        // appel de méthode
+	        // préfixé par _ pour indiquer un état privé 'fictif'
+	        this._build();
+	        
+	    },
+	    //////////////////////
+	    // Début du déplacement
+	    _eventDragStart : function(e){
+			//on récupère notre objet
+	    	var self = e.data;
+	    	//effet du drag and drop
+			e.dataTransfer.effectAllowed=self.options.action;
+			//on transfert l'id du bloc a déplacé
+			e.dataTransfer.setData("Text",e.target.id);
+	    	
+	    	// on change le style
+			self._moveStyleElement(); 
+	    },
+	    ////////////////////
+	    //fin du déplacement
+	    _eventDragEnd : function(e){
+	    	var self = e.data;
+			self._moveStyleElement();
+		},
+	    _eventHover: function(e){
+	    	var self = e.data;
+	    	self.element.toggleClass("elementhover");
+	    },
+	    //////////////////////
+	    // création de l'objet
+	    _build: function(){
+	    	// attribut permettant de déplacer l'élément
+	    	this.dom.draggable=true; 
+	    	this.element
+	    	.on('dragstart',this,this._eventDragStart)
+			.on('dragend',this, this._eventDragEnd)
+	    	.on('hover', this, this._eventHover);
+	    }
+	};
+
+	/***********************
+	 *	Objet Droppable
+	 *********************/
+	var droppable = {
+	    init: function(options, elem) {
+	        this.options = $.extend({},this.options,options);
+	        
+	        this.element = $(elem);
+	        this.dom = elem;
+	        
+	        heriter(this, DragAndDrop);
+
+	        this._build();
+	        
+	    },
+	    ///////////////////////////////////////////////////
+	    // L'élément d'aggrable entre dans l'élément droppable
+	    _eventDragEnter : function(e){
+	    	// ce paramètre permet d'autoriser le déplacement
+	    	if (e.preventDefault) { e.preventDefault();}
+	    	//celui ci fait la même chose pour IE
+			return false; 
+	    },
+	    //////////////////////////////////////////////////
+	    // L'élément d'aggrable sort de l'élément droppable
+	    _eventDragLeave : function(e){
+		},
+		//////////
+		// Survol
+		_eventDragOver : function(e){
+			if (e.preventDefault) { e.preventDefault();}
+			var self = e.data;
+			//effet du drag & drop
+			e.dataTransfer.dropEffect=self.options.action;
+			self._moveStyleHover(e.target.id);
+			return false;
+		},
+		/////////
+		//Dépot
+		_eventDrop : function(e){
+			if (e.preventDefault) { e.preventDefault();}
+			
+			var self = e.data;
+			var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
+				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
+				elem = $("#"+id); //element déposé
+
+			dropzone.append(elem);
+				
+			return false;
+		},
+		_moveStyleHover : function(id){
+			$("#"+id).toggleClass("dropzonehover");
+		},
+	    _build: function(){
+	    	this.element
+	    	.attr("dropzone",this.options.action)
+	    	.on('dragenter',this,this._eventDragEnter)
+	    	.on('dragleave',this, this._eventDragLeave)
+	    	.on('dragover',this, this._eventDragOver)
+	    	.on('drop',this, this._eventDrop);
+	    }
+	};
+
+
+	/*******************
+	 *  Objet Swappable
+	 ********************/
+	var swappable = {
+		init: function(options, elem) {
+		    this.options = $.extend({},this.options,options);
+		    
+		    this.element = $(elem);
+		    this.dom = elem;
+		    
+		  	//l'élément parent de l'élément sélectionné devient l'élément droppable
+		    this.dropzone = this.element.parent();
+		    
+		    // si la dropzone n'exsite pas encore
+		    if(!this.dropzone.attr("dropzone")){
+		    	// on la crée
+		    	this.dropzone.html5drag("droppable",this.options);
+		    	//on récupère l'objet droppable
+		    	this.droppable = this.dropzone.data("droppable");
+		    	// on surcharge les évènement
+		    	this._buildDropzone();
+		    }
+		    
+		    //Héritage de l'objet DragAndDrop
+		    heriter(this, DragAndDrop);
+		    // héritage de l'objet draggable
+		    heriter(this, draggable);
+		    
+		    this._build();
+		},
+		options:{
+			swappable: true,
+			add: false
+		},
+		/////////////////////////////////////////////////
+		//changement du style quant on déplace un élément
+	    _moveStyleElement: function(){
+			$("[draggable=true]").toggleClass("dropzone");
+		},
+		 //////////////////////
+	    // Début du déplacement
+	    _eventDragStart : function(e){
+			//on récupère notre objet
+	    	var self = e.data;
+	    	
+	    	//on récupère la méthode _eventDragStart de l'objet draggable
+			self._super("_eventDragStart",arguments);
+			
 			// on ajoute la classe origin pour se souvenir de l'emplacement afin de remplacer l'élément s'électioner
 			$("#"+self.element.data("dropzone")).addClass("origin"); 
 			// Si l'élément sélectionné n'est pas le dernier
@@ -159,94 +289,30 @@ var draggable = {
 			if(next)
 				// on ajoute un attribut contenant l'id de l'élément d'a coté pour savoir à quel endroit on viendra déposer l'autre élément
 				self.element.attr("data-next",next);
-		} 	
-    },
-    ////////////////////
-    //fin du déplacement
-    _eventDragEnd : function(e){
-    	var self = e.data,
-    		target = $("#"+e.target.id);
-		self._moveStyleElement(self.options.swappable);
-		// on cherche la zone droppable
-		var dropzone = self._searchDropzone(e.target.id); 
-		if(self.element.attr("data-dropzone")==dropzone.attr("id"))
-			//Si on est dans le même dépot on enlève la classe
-			$(".origin").removeClass("origin"); 
-	},
-    _eventHover: function(e){
-    	var self = e.data;
-    	self.element.toggleClass("elementhover");
-    },
-//    _eventMouseLeave : function(e){
-//    	var self = e.data;
-//    	self.element.toggleClass("hover");
-//    },
-//    _eventDragStart : function(e){
-//    	e.data._super("_eventDragStart",arguments);
-//    	console.log(e.data.__parent_methods._eventDragStart);
-//		console.log("test");
-//    },
-    //////////////////////
-    // création de l'objet
-    _build: function(){
-    	// attribut permettant de déplacer l'élément
-    	this.dom.draggable=true; 
-    	this.element
-    	.on('dragstart',this,this._eventDragStart)
-		.on('dragend',this, this._eventDragEnd)
-    	.on('hover', this, this._eventHover);
-    }
-};
+	    },
+	    ////////////////////
+	    //fin du déplacement
+	    _eventDragEnd : function(e){
+	    	var self = e.data;
+	    	//on récupère la méthode _eventDragEnd de l'objet draggable
+			self._super("_eventDragEnd",arguments);
 
-/***********************
- *	Objet Droppable
- *********************/
-var droppable = {
-    init: function(options, elem) {
-        this.options = $.extend({},this.options,options);
-        
-        this.element = $(elem);
-        this.dom = elem;
-        
-        heriter(this, DragAndDrop);
+			// on cherche la zone droppable
+			var dropzone = self._searchDropzone(e.target.id); 
+			if(self.element.attr("data-dropzone")==dropzone.attr("id"))
+				//Si on est dans le même dépot on enlève la classe
+				$(".origin").removeClass("origin"); 
+		},
+		/////////
+		//Dépot
+		_eventDrop : function(e){
+			if (e.preventDefault) { e.preventDefault();}
+			
+			var self = e.data;
+			var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
+				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
+				elem = $("#"+id); //element déposé
 
-        this._build();
-        
-    },
-    ///////////////////////////////////////////////////
-    // L'élément d'aggrable entre dans l'élément droppable
-    _eventDragEnter : function(e){
-    	// ce paramètre permet d'autoriser le déplacement
-    	if (e.preventDefault) { e.preventDefault();}
-    	//celui ci fait la même chose pour IE
-		return false; 
-    },
-    //////////////////////////////////////////////////
-    // L'élément d'aggrable sort de l'élément droppable
-    _eventDragLeave : function(e){
-	},
-	//////////
-	// Survol
-	_eventDragOver : function(e){
-		if (e.preventDefault) { e.preventDefault();}
-		var self = e.data;
-		//effet du drag & drop
-		e.dataTransfer.dropEffect=self.options.action;
-		self._moveStyleHover(e.target.id);
-		return false;
-	},
-	/////////
-	//Dépot
-	_eventDrop : function(e){
-		if (e.preventDefault) { e.preventDefault();}
-		
-		var self = e.data;
-		var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
-			id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
-			elem = $("#"+id); //element déposé
-
-		//si on fait un échange
-		if(self.options.swappable){
 			var origin = $(".origin"),// on récupère l'origine pour lui ajouté l'élément visé
 				target = $("#"+e.target.id), //on récupère l'élément visé
 				sameDropZone = dropzone.attr("id")==origin.attr("id"); //booléen qui renvoie true si on est dans le même dépot
@@ -295,54 +361,18 @@ var droppable = {
 				// dans le cas ou l'objet en target n'est pas un élément draggable
 				elem.removeAttr("data-next");
 				
-		}
-		// si ne doit rien échangé ou si l'élément visé n'est pas un élément déplacable
-		else if(self.options.swappable && !e.target.draggable && self.options.add || !self.options.swappable){
-			// on ajoute à la fin
-			dropzone.append(elem);
-		}
+			return false;
+		},
+		 _build: function(){
+			//on récupère la méthode _build de l'objet draggable
+			this._super("_build",arguments);
+			//utiliser pour les éléments droppable et draggable puisse comniqué
+			this.element.attr("data-dropzone",this.dropzone.attr("id")); 
 			
-		return false;
-	},
-	_moveStyleHover : function(id){
-		$("#"+id).toggleClass("dropzonehover");
-	},
-    _build: function(){
-    	this.element
-    	.attr("dropzone",this.options.action)
-    	.on('dragenter',this,this._eventDragEnter)
-    	.on('dragleave',this, this._eventDragLeave)
-    	.on('dragover',this, this._eventDragOver)
-    	.on('drop',this, this._eventDrop);
-    }
-};
-
-
-/*******************
- *  Objet Swappable
- ********************/
-var swappable = {
-	init: function(options, elem) {
-	    this.options = $.extend({},this.options,options);
-	    
-	    this.element = $(elem);
-	    this.dom = elem;
-	    //l'élément parent de l'élément sélectionné devient l'élément droppable
-	    this.dropzone = this.element.parent(); 
-	    
-	    this._build();
-	},
-	options:{
-		swappable: true,
-		add: false
-	},
-	 _build: function(){
-		//utiliser pour les éléments droppable et draggable puisse comniqué
-		this.element.attr("data-dropzone",this.dropzone.attr("id")); 
-		
-		if(!this.dropzone.attr("dropzone"))
-			this.dropzone.html5drag("droppable",this.options);
-		
-		this.element.html5drag("draggable",this.options);
-    }
-}
+			//this.element.html5drag("draggable",this.options);
+	    },
+	    _buildDropzone : function(){
+	    	this.dropzone.on('drop',this.droppable, this._eventDrop);
+	    }
+	}
+})(jQuery);
