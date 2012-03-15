@@ -214,8 +214,8 @@ function heriter(destination, source) {
 		_eventDrop : function(e){
 			if (e.preventDefault) { e.preventDefault();}
 			
-			var self = e.data;
-			var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
+			var self = e.data,
+				dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
 				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
 				elem = $("#"+id); //element déposé
 
@@ -255,7 +255,7 @@ function heriter(destination, source) {
 		    	// on la crée
 		    	this.dropzone.html5drag("droppable",this.options);
 		    	//on récupère l'objet droppable
-		    	this.droppable = this.dropzone.data("droppable");
+		    	this.droppable = $.data(this.dropzone[0],"droppable");
 		    	// on surcharge les évènement
 		    	this._buildDropzone();
 		    }
@@ -291,7 +291,7 @@ function heriter(destination, source) {
 			var next = self.element.next().attr("id");
 			if(next)
 				// on ajoute un attribut contenant l'id de l'élément d'a coté pour savoir à quel endroit on viendra déposer l'autre élément
-				self.element.attr("data-next",next);
+				$.data(self.dom,"next",next);
 	    },
 	    ////////////////////
 	    //fin du déplacement
@@ -334,11 +334,11 @@ function heriter(destination, source) {
 				//on remplace l'élément
 				//target.replaceWith(elem);
 				// Si l'élément que l'on vient de déplacé n'était pas le dernier de son conteneur
-				if(elem.attr("data-next")){
+				if($.data(elem[0],"next")){
 					//Si l'élément suivant est différent de l'élément visé
-					if(elem.attr("data-next")!= target.attr("id")){
+					if($.data(elem[0],"next")!= target.attr("id")){
 						elem.insertBefore(target);
-						target.insertBefore("#"+elem.attr("data-next"));
+						target.insertBefore("#"+$.data(elem[0],"next"));
 					} else{
 						elem.insertAfter(target);
 					}
@@ -356,11 +356,11 @@ function heriter(destination, source) {
 				// on recrée l'élément déplaçable pour réinitilaiser les évènement et on change l'origine
 				//elem.html5drag("swappable").attr("data-dropzone",dropzone.attr("id"));
 			}
-			if(elem.attr("data-next"))
+			if($.data(elem[0],"next"))
 				// on supprime cette attribut qui est devenu inutile
 				// on le sépare de l'autre condition pour être sur de supprimer cette attribut 
 				// dans le cas ou l'objet en target n'est pas un élément draggable
-				elem.removeAttr("data-next");
+				elem.removeData("next");
 				
 			return false;
 		},
