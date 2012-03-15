@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<title>HTML5 : Drag & Drop</title>
+		<style>
+			body{
+				text-align:center;
+				background-color:#777;
+			}
+			table, tr, td{
+				border:1px solid black;
+			}
+			table{
+				margin:auto;
+				width:300px;
+			}
+			p{
+				background-color:#555;
+			}
+			/* enlever la sélection du texte */
+			[draggable=true]{
+				-moz-user-select: none;
+				-khtml-user-select: none;
+				-webkit-user-select: none;
+				user-select: none;
+				cursor:move;
+				-khtml-user-drag: element; /* pour safari */
+				-webkit-transition: all 100ms ease-in-out;
+				-moz-transition: all 100ms ease-in-out;
+				-o-transition: all 100ms ease-in-out;
+				-ms-transition: all 100ms ease-in-out;
+				transition: all 100ms ease-in-out;
+			}
+			[draggable=false]{
+				cursor:no-drop;
+			}
+			.elementhover{
+				-webkit-transform:scale(1.05);
+				-moz-transform:scale(1.05);
+				-o-transform:scale(1.05);
+				-ms-transform:scale(1.05);
+				transform:scale(1.05);
+			}
+			.depot{
+				height: 100px;
+				width: 90%;
+				border:3px dashed #bbb;
+				background-color:gray;
+			}
+			.deposezmoi{
+				background:#e0e6e9;
+				border: 3px dashed #79a633;
+			}
+			.hight_opacity{
+				opacity:1;
+			}
+			.hover{
+				border: 2px dashed black;
+			}
+			.dropzone{
+				opacity:0.5;
+				-webkit-transform:scale(.95);
+				-moz-transform:scale(.95);
+				-o-transform:scale(.95);
+				-ms-transform:scale(.95);
+				transform:scale(.95);
+				border:1px solid black;
+			}
+			.dropzonehover{
+				-webkit-transform:scale(1);
+				-moz-transform:scale(1);
+				-o-transform:scale(1);
+				-ms-transform:scale(1);
+				transform:scale(1);
+			}
+			.target{
+				-webkit-transform:scale(.8);
+				-moz-transform:scale(.8);
+				-o-transform:scale(.8);
+				-ms-transform:scale(.8);
+				transform:scale(.8);
+				opacity:1;
+			}
+		</style>
+	</head>
+	<body>
+		<table>
+			<tbody>
+				<tr id="1">	
+					<td id="10" colspan="2">Lundi</td>
+				</tr>
+				<tr id="2">
+					<td id="11" >Midi</td>
+					<td id="12"> Soir</td>
+				</tr >
+				<tr id="3">
+					<td id="13" colspan="2">Mardi</td>
+				</tr>
+				<tr id="4">
+					<td id="14"><img src="images.jpeg" alt=""/></td>
+					<td id="15"><img src="images.jpeg" alt=""/></td>
+				</tr>
+				<tr id="5">	
+					<td id="16" colspan="2">Mercredi</td>
+				</tr>
+				<tr id="6">
+					<td id="17" >
+						<h1 id="100">Midi</h1>
+						<p id="1000">Entrée 1</p>
+						<p id="1001">Plat 1</p>
+						<p id="1002">Dessert 1</p>
+					</td>
+					<td id="18">
+						<h1 id="101">Soir</h1>
+						<p id="1003">Entrée 2</p>
+						<p id="1004">Plat 2</p>
+						<p id="1005">Dessert 2</p>
+					</td>
+				</tr>
+				<tr id="7">
+					<td id="19" colspan="2">Jeudi</td>
+				</tr>
+				<tr id="8">
+					<td id="20">
+						<h1 id="103">Midi</h1>
+						<p id="1006">Entrée 3</p>
+						<p id="1007">Plat 3</p>
+						<p id="1008">Dessert 3</p>
+					</td>
+					<td id="21">
+						<h1>Soir</h1>
+						<p>Entrée 3</p>
+						<p>Plat 3</p>
+						<p>Dessert 3</p>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<script type="text/javascript" src="jquery-1.7.1.min.js" ></script>
+		<script type="text/javascript" src="jquery.html5draggable.js" ></script>
+		<script>
+			$(document).ready(function(){
+				$("p").html5drag("swappable");
+			});
+		</script>
+	</body>
+</html>
