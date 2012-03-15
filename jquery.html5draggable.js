@@ -161,11 +161,14 @@ function heriter(destination, source) {
 	    // création de l'objet
 	    _build: function(){
 	    	// attribut permettant de déplacer l'élément
-	    	this.dom.draggable=true; 
-	    	this.element
-	    	.on('dragstart',this,this._eventDragStart)
-			.on('dragend',this, this._eventDragEnd)
-	    	.on('hover', this, this._eventHover);
+	    	this.dom.draggable=true;
+	    	this.buildEvent(this.element, this);
+	    },
+	    buildEvent : function(elem, obj){
+	    	elem
+	    	.on('dragstart',obj,obj._eventDragStart)
+			.on('dragend',obj, obj._eventDragEnd)
+	    	.on('hover', obj, obj._eventHover);
 	    }
 	};
 
@@ -283,7 +286,7 @@ function heriter(destination, source) {
 			self._super("_eventDragStart",arguments);
 			
 			// on ajoute la classe origin pour se souvenir de l'emplacement afin de remplacer l'élément s'électioner
-			$("#"+self.element.data("dropzone")).addClass("origin"); 
+			$("#"+$.data(self.dom,"dropzone")).addClass("origin"); 
 			// Si l'élément sélectionné n'est pas le dernier
 			var next = self.element.next().attr("id");
 			if(next)
@@ -299,7 +302,7 @@ function heriter(destination, source) {
 
 			// on cherche la zone droppable
 			var dropzone = self._searchDropzone(e.target.id); 
-			if(self.element.attr("data-dropzone")==dropzone.attr("id"))
+			if($.data(self.dom,"dropzone")==dropzone.attr("id"))
 				//Si on est dans le même dépot on enlève la classe
 				$(".origin").removeClass("origin"); 
 		},
@@ -312,48 +315,46 @@ function heriter(destination, source) {
 			var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
 				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
 				elem = $("#"+id); //element déposé
-
 			var origin = $(".origin"),// on récupère l'origine pour lui ajouté l'élément visé
 				target = $("#"+e.target.id), //on récupère l'élément visé
 				sameDropZone = dropzone.attr("id")==origin.attr("id"); //booléen qui renvoie true si on est dans le même dépot
-			
+
 			//on n'a plus besoin de cette classe
 			origin.removeClass("origin");
 			
-			//si l'élément que l'on vise est un élément déplacable
+			//si l'élément que l'on vise est un élément déplacable on fait l'échange
 			if(e.target.draggable){
 				
 				if(!sameDropZone){
 					//on remplace l'origine des éléments
-					target.attr("data-dropzone",origin.attr("id"));
-					elem.attr("data-dropzone",dropzone.attr("id"));
+					$.data(target[0],"dropzone",origin.attr("id"));
+					$.data(elem[0],"dropzone",dropzone.attr("id"));
 				}
 				
 				//on remplace l'élément
-				target.replaceWith(elem);
-				
+				//target.replaceWith(elem);
 				// Si l'élément que l'on vient de déplacé n'était pas le dernier de son conteneur
 				if(elem.attr("data-next")){
 					//Si l'élément suivant est différent de l'élément visé
-					if(elem.attr("data-next")!= target.attr("id"))
-						// on place l'élément visé avant et on recrée l'élément déplaçable pour réinitilaiser les évènement
-						target.insertBefore("#"+elem.attr("data-next")).html5drag("swappable");
-					else{
-						// on clone l'ancien élément et on le place avant le nouveau et on recrée l'élément déplaçable pour réinitilaiser les évènement
-						target.clone().insertBefore(elem).html5drag("swappable");
+					if(elem.attr("data-next")!= target.attr("id")){
+						elem.insertBefore(target);
+						target.insertBefore("#"+elem.attr("data-next"));
+					} else{
+						elem.insertAfter(target);
 					}
-				} else{
+				} else {
+					elem.insertBefore(target);
 					// sinon on place l'élément à la fin
 					origin.append(target);
 					// on recrée l'élément déplaçable pour réinitilaiser les évènement
-					target.html5drag("swappable");
+					//target.html5drag("swappable");
 				}
 					
 			} else if(self.options.add){
 				// on ajoute à la fin
 				dropzone.append(elem);
 				// on recrée l'élément déplaçable pour réinitilaiser les évènement et on change l'origine
-				elem.html5drag("swappable").attr("data-dropzone",dropzone.attr("id"));
+				//elem.html5drag("swappable").attr("data-dropzone",dropzone.attr("id"));
 			}
 			if(elem.attr("data-next"))
 				// on supprime cette attribut qui est devenu inutile
@@ -367,7 +368,7 @@ function heriter(destination, source) {
 			//on récupère la méthode _build de l'objet draggable
 			this._super("_build",arguments);
 			//utiliser pour les éléments droppable et draggable puisse comniqué
-			this.element.attr("data-dropzone",this.dropzone.attr("id")); 
+			$.data(this.dom,"dropzone",this.dropzone.attr("id")); 
 			
 			//this.element.html5drag("draggable",this.options);
 	    },
