@@ -15,15 +15,20 @@
 				margin:auto;
 				width:300px;
 			}
+			img{
+				width:100px;
+			}
 			p{
 				background-color:#555;
 			}
 			/* enlever la sélection du texte */
-			[draggable=true]{
-				-moz-user-select: none;
-				-khtml-user-select: none;
-				-webkit-user-select: none;
-				user-select: none;
+			*[draggable=true]{
+				-o-user-select: none;
+			    -webkit-user-select: none;
+			    -moz-user-select: -moz-none;
+			    -khtml-user-select: none;
+			    -ms-user-select: none;
+			    user-select: none;
 				cursor:move;
 				-khtml-user-drag: element; /* pour safari */
 				-webkit-transition: all 100ms ease-in-out;
@@ -98,8 +103,8 @@
 					<td id="13" colspan="2">Mardi</td>
 				</tr>
 				<tr id="4">
-					<td id="14"><img src="images.jpeg" alt=""/></td>
-					<td id="15"><img src="images.jpeg" alt=""/></td>
+					<td id="14"><img unselectable="on" id="4545545" src="images.jpeg" alt=""/></td>
+					<td id="15"><img id="3456"src="index.jpeg" alt=""/></td>
 				</tr>
 				<tr id="5">	
 					<td id="16" colspan="2">Mercredi</td>
@@ -130,9 +135,9 @@
 					</td>
 					<td id="21">
 						<h1>Soir</h1>
-						<p>Entrée 3</p>
-						<p>Plat 3</p>
-						<p>Dessert 3</p>
+						<div id=34567>Entrée 3</div>
+						<div id="9876">Plat 3</div>
+						<div id="34567654">Dessert 3</div>
 					</td>
 				</tr>
 			</tbody>
@@ -141,7 +146,8 @@
 		<script type="text/javascript" src="jquery.html5draggable.js" ></script>
 		<script>
 			$(document).ready(function(){
-				$("p").html5drag("swappable");
+				$("p, div, img").html5drag("draggable");
+				$("td").html5drag("droppable");
 			});
 		</script>
 	</body>

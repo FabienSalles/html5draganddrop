@@ -90,7 +90,7 @@ function heriter(destination, source) {
 		///////////////////////////
 		//options par defaut de l'objet
 	    options: {
-	    	action: "move",
+	    	action: "copy",
 			swappable : false,
 			add : true
 	    },
@@ -143,6 +143,10 @@ function heriter(destination, source) {
 			e.dataTransfer.effectAllowed=self.options.action;
 			//on transfert l'id du bloc a déplacé
 			e.dataTransfer.setData("Text",e.target.id);
+			//e.dataTransfer.setDragImage(e.target,null,null);
+//			var img = new Image();
+//			img.src="images.jpeg";
+//			e.dataTransfer.setDragImage(img,50,50);
 	    	
 	    	// on change le style
 			self._moveStyleElement(); 
@@ -151,6 +155,7 @@ function heriter(destination, source) {
 	    //fin du déplacement
 	    _eventDragEnd : function(e){
 	    	var self = e.data;
+	    	//on remet le style par defaut
 			self._moveStyleElement();
 		},
 	    _eventHover: function(e){
@@ -161,9 +166,13 @@ function heriter(destination, source) {
 	    // création de l'objet
 	    _build: function(){
 	    	// attribut permettant de déplacer l'élément
-	    	this.dom.draggable=true;
+	    	this.element.attr("draggable",true);
+
+	    	//console.log(this.dom.draggable);
 	    	this.buildEvent(this.element, this);
 	    },
+	    //////////////////////////
+	    // création des évènements
 	    buildEvent : function(elem, obj){
 	    	elem
 	    	.on('dragstart',obj,obj._eventDragStart)
@@ -206,6 +215,7 @@ function heriter(destination, source) {
 			var self = e.data;
 			//effet du drag & drop
 			e.dataTransfer.dropEffect=self.options.action;
+			//changement du style
 			self._moveStyleHover(e.target.id);
 			return false;
 		},
@@ -216,10 +226,8 @@ function heriter(destination, source) {
 			
 			var self = e.data,
 				dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
-				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
-				elem = $("#"+id); //element déposé
-
-			dropzone.append(elem);
+				id = e.dataTransfer.getData("Text"); // on récupère l'id de l'élément déplacé
+			dropzone.append(document.getElementById(id));
 				
 			return false;
 		},
@@ -271,13 +279,17 @@ function heriter(destination, source) {
 			swappable: true,
 			add: false
 		},
-		/////////////////////////////////////////////////
-		//changement du style quant on déplace un élément
+		///////////////////////////////////////////////////////
+		// Surcharge de la fonction issue de l'objet dragandrop
+		// pour changé le style non pas sur la zone droppable
+		// mais sur les éléments swappable
 	    _moveStyleElement: function(){
 			$("[draggable=true]").toggleClass("dropzone");
 		},
-		 //////////////////////
-	    // Début du déplacement
+		 /////////////////////////////////////////////////////
+	    // Surcharge de la fonction issue de l'objet draggable
+		// pour prendre en compte l'origin de l'élément et sa 
+		// position
 	    _eventDragStart : function(e){
 			//on récupère notre objet
 	    	var self = e.data;
@@ -285,16 +297,18 @@ function heriter(destination, source) {
 	    	//on récupère la méthode _eventDragStart de l'objet draggable
 			self._super("_eventDragStart",arguments);
 			
-			// on ajoute la classe origin pour se souvenir de l'emplacement afin de remplacer l'élément s'électioner
+			// on ajoute la classe origin pour se souvenir de l'emplacement
+			// afin de remplacer l'élément s'électioner
 			$("#"+$.data(self.dom,"dropzone")).addClass("origin"); 
 			// Si l'élément sélectionné n'est pas le dernier
 			var next = self.element.next().attr("id");
 			if(next)
-				// on ajoute un attribut contenant l'id de l'élément d'a coté pour savoir à quel endroit on viendra déposer l'autre élément
+				// on ajoute un attribut contenant l'id de l'élément d'a coté
+				// pour savoir à quel endroit on viendra déposer l'autre élément
 				$.data(self.dom,"next",next);
 	    },
-	    ////////////////////
-	    //fin du déplacement
+	    /////////////////////////////////////////////////////
+	    //Surcharge de la fonction issue de l'objet draggable
 	    _eventDragEnd : function(e){
 	    	var self = e.data;
 	    	//on récupère la méthode _eventDragEnd de l'objet draggable
@@ -306,55 +320,75 @@ function heriter(destination, source) {
 				//Si on est dans le même dépot on enlève la classe
 				$(".origin").removeClass("origin"); 
 		},
-		/////////
-		//Dépot
-		_eventDrop : function(e){
+		/////////////////////////////////////////////////////////////////////
+		// Surcharge de la fonction dragOver de l'objet droppable
+		// cette manière et a améliorer parce que comme on appel le plugin et
+		// que l'on effectue pas d'héritage il n'y a pas besoin d'appeller la méthode
+		// de l'objet droppable mais celle ci sera toujours appelé
+		// Dans celle-ci on prend en compte le fait de désactivé l'effet de drop
+		// si on ne ce trouve pas sur un élément a échangé pour désactivé l'ajout
+		// on est obligé de le désactivé de cette manière parce que la fonction drop
+		// de l'objet droppable et toujours appelé avant celle de l'objet swappable
+		_eventDragOver : function(e){
 			if (e.preventDefault) { e.preventDefault();}
-			
 			var self = e.data;
-			var dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
+			//effet du drag & drop
+			e.dataTransfer.dropEffect=self.options.action;
+			//changement du style
+			self._moveStyleHover(e.target.id);
+			// si on ne peux pas ajouté
+			if(!self.options.add){
+				// on le désactive
+				e.dataTransfer.dropEffect="none";
+				// si on se trouve sur un objet a échangé
+				if(e.target.draggable)
+					// on réactive l'action
+					e.dataTransfer.dropEffect=self.options.action;
+			}
+			return false;
+		},
+		//////////////////////////////////////////////////////
+		// Surcharge de la fonction drop de l'objet droppable
+		// Celle-ci permet d'echangé au bon endroit les élément
+		_eventDrop : function(e){
+			var self = e.data,
+				dropzone = self._searchDropzone(e.target.id), //on cherche le dépot
 				id = e.dataTransfer.getData("Text"), // on récupère l'id de l'élément déplacé
-				elem = $("#"+id); //element déposé
-			var origin = $(".origin"),// on récupère l'origine pour lui ajouté l'élément visé
-				target = $("#"+e.target.id), //on récupère l'élément visé
+				elem = $("#"+id), //element déposé
+				origin = $(".origin"),// on récupère l'origine pour lui ajouté l'élément visé
+				target = $(e.target), //on récupère l'élément visé
 				sameDropZone = dropzone.attr("id")==origin.attr("id"); //booléen qui renvoie true si on est dans le même dépot
 
 			//on n'a plus besoin de cette classe
 			origin.removeClass("origin");
 			
-			//si l'élément que l'on vise est un élément déplacable on fait l'échange
-			if(e.target.draggable){
-				
+			//---- Bug IE
+			// e.target.draggable ne fonctionne pas
+			// target.prop("draggable") non plus :s
+			if(target.attr("draggable")){
 				if(!sameDropZone){
-					//on remplace l'origine des éléments
+					//on remplace les origines des éléments
 					$.data(target[0],"dropzone",origin.attr("id"));
 					$.data(elem[0],"dropzone",dropzone.attr("id"));
 				}
-				
-				//on remplace l'élément
-				//target.replaceWith(elem);
+
 				// Si l'élément que l'on vient de déplacé n'était pas le dernier de son conteneur
 				if($.data(elem[0],"next")){
 					//Si l'élément suivant est différent de l'élément visé
 					if($.data(elem[0],"next")!= target.attr("id")){
+						//on remplace les éléments
 						elem.insertBefore(target);
 						target.insertBefore("#"+$.data(elem[0],"next"));
 					} else{
+						//on les inverses
 						elem.insertAfter(target);
 					}
 				} else {
+					console.log("test");
+					//on les remplaces sans se soucié de la place de l'élément draggable
 					elem.insertBefore(target);
-					// sinon on place l'élément à la fin
 					origin.append(target);
-					// on recrée l'élément déplaçable pour réinitilaiser les évènement
-					//target.html5drag("swappable");
 				}
-					
-			} else if(self.options.add){
-				// on ajoute à la fin
-				dropzone.append(elem);
-				// on recrée l'élément déplaçable pour réinitilaiser les évènement et on change l'origine
-				//elem.html5drag("swappable").attr("data-dropzone",dropzone.attr("id"));
 			}
 			if($.data(elem[0],"next"))
 				// on supprime cette attribut qui est devenu inutile
@@ -369,11 +403,12 @@ function heriter(destination, source) {
 			this._super("_build",arguments);
 			//utiliser pour les éléments droppable et draggable puisse comniqué
 			$.data(this.dom,"dropzone",this.dropzone.attr("id")); 
-			
-			//this.element.html5drag("draggable",this.options);
 	    },
+	    ///////////////////////////////////////////////////
+	    // Ajout des nouvelles fonction des éléments
 	    _buildDropzone : function(){
 	    	this.dropzone.on('drop',this.droppable, this._eventDrop);
+	    	this.dropzone.on('dragover',this.droppable, this._eventDragOver);
 	    }
 	}
 })(jQuery);
